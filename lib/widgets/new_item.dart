@@ -2,9 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/category.dart';
-//import 'package:shopping_list/models/grocery_item.dart';
+import 'package:shopping_list/models/grocery_item.dart';
 
 class NewItem extends StatefulWidget {
   const NewItem({super.key});
@@ -18,7 +19,7 @@ class NewItem extends StatefulWidget {
 class _NewItemState extends State<NewItem> {
   final _formKey = GlobalKey<FormState>();
   var _enteredName = '';
-  var _enteredQunatity = 1;
+  var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
 
   void _saveItem() async {
@@ -34,19 +35,23 @@ class _NewItemState extends State<NewItem> {
         body: json.encode(
           {
             'name': _enteredName,
-            'quantity': _enteredQunatity,
+            'quantity': _enteredQuantity,
             'category': _selectedCategory.title,
           },
         ),
       );
-      print(response.body);
-      print(response.statusCode);
+      final Map<String, dynamic> resData = json.decode(response.body);
       if (!context.mounted) {
         //this checks if the context of the widget still belongs to the screen
         //if it does then we simply return and the Navigator.pop() is not executed
         return;
       }
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(GroceryItem(
+        id: resData['name'],
+        name: _enteredName,
+        quantity: _enteredQuantity,
+        category: _selectedCategory,
+      ));
     }
   }
 
@@ -77,6 +82,9 @@ class _NewItemState extends State<NewItem> {
                   return null;
                 },
                 onSaved: (value) {
+                  // if (value == null) {
+                  //   return;
+                  // }
                   _enteredName = value!;
                 },
               ), // instead of TextField()
@@ -89,7 +97,7 @@ class _NewItemState extends State<NewItem> {
                         label: Text('Quantity'),
                       ),
                       keyboardType: TextInputType.number,
-                      initialValue: _enteredQunatity.toString(),
+                      initialValue: _enteredQuantity.toString(),
                       validator: (value) {
                         if (value == null ||
                             value.isEmpty ||
@@ -100,7 +108,7 @@ class _NewItemState extends State<NewItem> {
                         return null;
                       },
                       onSaved: (value) {
-                        _enteredQunatity = int.parse(value!);
+                        _enteredQuantity = int.parse(value!);
                       },
                     ),
                   ),
